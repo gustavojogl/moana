@@ -1,4 +1,5 @@
 #!/bin/sh
+apt-get install rar -y
 
 NAME="Moana Backup"                # Nombre script.
 #Descripcion:            Script de backup de files y DBs del VPS
