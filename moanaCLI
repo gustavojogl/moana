@@ -1,0 +1,88 @@
+#!/bin/sh
+
+NAME="Moana Backup"                # Nombre script.
+#Descripcion:            Script de backup de files y DBs del VPS
+: ${VERSION:=0.1}                     # VersiÃ³n script.
+: ${DATE:=$(date +'%Y-%m-%d')}    # Variable para Fecha.
+: ${TIME:=$(date +'%R')}                # Variable para Hora.
+: ${WORK_DIR:=/home/backups/$DATE}            # Directorio de trabajo actual.
+: ${LOG_FILE:=/home/backups/$DATE/record.log}   # Archivo de log.
+: ${ADMIN1a:=EMAIL1@EMAIL.COM}              # Email de Administrador No.1
+: ${ADMIN1b:=EMAIL2@EMAIL.COM}              # Email de Administrador No.1
+
+: ${LINE:="-"}
+: ${DB_PASS:=}        # Password de MySQL.
+: ${CLIENTE:="COMPANIA"}
+
+mkdir -p $WORK_DIR/
+
+# Creando directorio donde se trabajarÃ¡, si es que no existe.
+if [ -d "`dirname $LOG_FILE`" ]; then mkdir -p "`dirname $LOG_FILE`"; fi
+
+# Cambiando a directorio donde trabajaremos.
+cd $WORK_DIR
+
+# Copiando /tftpboot/ hacia directorio de trabajo actual.
+cp -Rv /tftpboot/ $WORK_DIR > $LOG_FILE
+echo $LINE >> $LOG_FILE
+
+# Creando carpeta para logs.
+mkdir $WORK_DIR/logs
+
+# Copiando LOGs.
+#cp /var/log/apache2/ $WORK_DIR/logs/ -Rv >> $LOG_FILE && echo $LINE >> $LOG_FILE
+
+# Creando carpeta para DBs.
+mkdir $WORK_DIR/dbs
+
+# Exportando DBs.
+#mysqldump --opt -hlocalhost -uroot -p"$DB_PASS" dhserver > "$WORK_DIR/dbs/dhserver.sql"
+mysqldump --opt -hlocalhost -uroot dhserver > "$WORK_DIR/dbs/dhserver.sql"
+mysqldump --opt -hlocalhost -uroot flowdat2 > "$WORK_DIR/dbs/flowdat2.sql"
+mysqldump --opt -hlocalhost -uroot radius > "$WORK_DIR/dbs/radius.sql"
+mysqldump --opt -hlocalhost -uroot postfix > "$WORK_DIR/dbs/postfix.sql"
+
+# Creando carpeta para DBs.
+mkdir -p $WORK_DIR/flowdat2/app/config
+cp -r /var/flowdat/flowdat2/app/config/* $WORK_DIR/flowdat2/app/config > $LOG_FILE
+echo $LINE >> $LOG_FILE
+
+# Creando carpeta para DBs.
+mkdir -p $WORK_DIR/dhcpd-fd
+cp /var/flowdat/dhcpd-fd/dhcpd-fd.ini $WORK_DIR/dhcpd-fd > $LOG_FILE
+echo $LINE >> $LOG_FILE
+
+# Saliendo un nivel mÃ¡s arriba (/home/backups/).
+cd ..
+
+# Comprimiendo directorio de trabajo actual.
+#tar czvf "$DATE.tar.gz" "$DATE"
+rar a $DATE.rar -hpMICLAVE $WORK_DIR >> $LOG_FILE && echo $LINE >> $LOG_FILE
+mv $DATE.rar $CLIENTE-$DATE.rar
+
+# Preparando informaciÃ³n para enviar por email.
+> data.info
+touch data.info
+
+ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' >> data.info
+
+echo $LINE >> data.info
+echo "El archivo $DATE.rar tiene un tamaño de:" >> data.info
+du -bsh $DATE.rar >> data.info
+#echo $LINE >> data.info
+#cat $LOG_FILE >> data.info
+#tar czvf data.info.tar.gz data.info
+
+# Eliminando directorio una vez comprimido.
+rm -R "$WORK_DIR"
+
+# Enviando emails
+mail -s "Flowdat2 | Status de Backup."  $ADMIN1a < data.info
+
+# Haciendo copia por SSH hacia cuenta en otro servidor o hosting.
+#scp -P 922 "/home/backups/$DATE.rar" account@serverhosting.com:/home/backups/
+
+echo "                  #######################"
+echo "                  ## BACKUP REALIZADO! ##"
+echo "                  #######################"
+exit 0
