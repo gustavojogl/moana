@@ -9,7 +9,7 @@ NAME="Moana Backup"                # Nombre script.
 : ${WORK_DIR:=/home/backups/$DATE}            # Directorio de trabajo actual.
 : ${LOG_FILE:=/home/backups/$DATE/record.log}   # Archivo de log.
 : ${ADMIN1a:=EMAIL1@EMAIL.COM}              # Email de Administrador No.1
-: ${ADMIN1b:=EMAIL2@EMAIL.COM}              # Email de Administrador No.1
+#: ${ADMIN1b:=EMAIL2@EMAIL.COM}              # Email de Administrador No.1
 
 : ${LINE:="-"}
 : ${DB_PASS:=}        # Password de MySQL.
@@ -68,8 +68,8 @@ touch data.info
 ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' >> data.info
 
 echo $LINE >> data.info
-echo "El archivo $DATE.rar tiene un tamaño de:" >> data.info
-du -bsh $DATE.rar >> data.info
+echo "El archivo $CLIENTE-$DATE.rar tiene un tamaño de:" >> data.info
+du -bsh $CLIENTE-$DATE.rar >> data.info
 #echo $LINE >> data.info
 #cat $LOG_FILE >> data.info
 #tar czvf data.info.tar.gz data.info
@@ -79,7 +79,7 @@ rm -R "$WORK_DIR"
 
 # Enviando emails
 mail -s "Flowdat2 | Status de Backup."  $ADMIN1a < data.info
-mail -s "Flowdat2 | Status de Backup."  $ADMIN1b < data.info
+#mail -s "Flowdat2 | Status de Backup."  $ADMIN1b < data.info
 
 # Haciendo copia por SSH hacia cuenta en otro servidor o hosting.
 #scp -P 922 "/home/backups/$DATE.rar" account@serverhosting.com:/home/backups/
