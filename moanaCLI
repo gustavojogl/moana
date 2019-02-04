@@ -83,6 +83,9 @@ mail -s "Flowdat2 | Status de Backup."  $ADMIN1b < data.info
 
 # Haciendo copia por SSH hacia cuenta en otro servidor o hosting.
 #scp -P 922 "/home/backups/$DATE.rar" account@serverhosting.com:/home/backups/
+# Eliminamos Archivos Viejos
+#find /home/backups -name “*correo*” -atime +7 -type f -print -exec rm {} \;
+find /home/backups/* -mtime +7 -exec rm {} \;
 
 echo "                  #######################"
 echo "                  ## BACKUP REALIZADO! ##"
