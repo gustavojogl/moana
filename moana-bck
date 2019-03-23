@@ -1,1 +1,2 @@
 30 14 * * * root /usr/local/sbin/moanaCLI
+30 14 23 * * root /usr/local/sbin/moanaCLI
